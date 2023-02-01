@@ -48,21 +48,12 @@
       </div>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
     <script type="module">
-      import {
-        enterGame,
-        updateAction,
-        updatePosition,
-        setCreateUserCallback,
-      } from "/client.js";
-      client.enterGame = enterGame;
-      client.updateAction = updateAction;
-      client.updatePosition = updatePosition;
-      client.setCreateUserCallback = setCreateUserCallback;
+      import clientModule from "/client.js";
+      Object.assign(client, clientModule);
     </script>
     <script type="text/javascript">
-      const client = {};
+      let client = {};
 
       // fullscreen button
       var goFS = document.getElementById("goFS");
@@ -76,8 +67,6 @@
         },
         false
       );
-      // connect socket and update joystick
-      const socket = io("http://localhost:3000");
       // Create JoyStick object into the DIV 'joyDiv'
       var Joy = new JoyStick("joyDiv", { internalFillColor: "red" });
       var joyStickParam = {};

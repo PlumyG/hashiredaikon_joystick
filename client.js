@@ -1,10 +1,10 @@
 import { io } from "https://cdn.socket.io/4.4.1/socket.io.esm.min.js";
+let socket = io.connect("http://localhost:3000");
 
-const socket = io("http://localhost:3000");
 let room_id;
 let player_id;
-export let player_name;
-export let createUserCallback;
+let player_name;
+let createUserCallback;
 
 socket.emit("CREATE_LOBBY", {
   player_id: "l5hoo9j01hhmbwh85uq",
@@ -36,18 +36,18 @@ socket.on("CREATE_USER_SUCCESSFUL", (data) => {
   createUserCallback = null;
 });
 
-export function setCreateUserCallback(callback) {
+function setCreateUserCallback(callback) {
   createUserCallback = callback;
 }
 
-export function enterGame(name) {
+function enterGame(name) {
   socket.emit("CREATE_NEW_USER", {
     player_name: name.value,
     room_id,
   });
 }
 
-export function updatePosition(joyStickData) {
+function updatePosition(joyStickData) {
   socket.emit("UPDATE_PLAYER_POSITION", {
     player_id: player_id,
     joyInputPosX: joyStickData.inputPosX,
@@ -57,10 +57,19 @@ export function updatePosition(joyStickData) {
     joyY: joyStickData.y,
   });
 }
-
-export function updateAction(btn) {
+function updateAction(btn) {
   socket.emit("UPDATE_PLAYER_ACTION", {
     player_id: player_id,
     action: btn + "_pressed",
   });
 }
+
+export default {
+  socket,
+  player_name,
+  createUserCallback,
+  updateAction,
+  updatePosition,
+  enterGame,
+  setCreateUserCallback,
+};
