@@ -52,7 +52,7 @@ function updatePosition(joyStickData) {
     player_id: player_id,
     joyInputPosX: joyStickData.inputPosX,
     joyInputPosY: joyStickData.inputPosY,
-    joyDirezione: joyStickData.direction,
+    joyDirection: joyStickData.direction,
     joyX: joyStickData.x,
     joyY: joyStickData.y,
   });
