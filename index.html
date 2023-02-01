@@ -10,17 +10,12 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no"
     />
     <link rel="shortcut icon" type="image/png" href="" />
-    <style>
-      .mainDiv {
-        text-align: center;
-        margin: 10%;
-        font-size: 20px;
-      }
-    </style>
+    <link rel="stylesheet" href="index.css" />
+    <script src="/joy.min.js"></script>
   </head>
   <body>
-    <div class="mainDiv">
-      <form type="post" action="joyStick.html" onsubmit="return enterGame()">
+    <div id="mainScreen">
+      <div>
         <label for="playerName">Name: </label>
         <input
           type="text"
@@ -29,24 +24,115 @@
           maxlength="20"
           required
         />
-        <button type="submit">Enter game</button>
-      </form>
+        <button type="submit" onclick="enterGame()">Enter game</button>
+      </div>
     </div>
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-      // client-side
-      const socket = io("http://localhost:8000", {
-        withCredentials: true,
-        extraHeaders: {
-          "my-custom-header": "abcd",
-        },
-      });
+    <div id="playScreen">
+      <button id="goFS">Fullscreen</button>
+      <div id="nameTitle">Minimalist Style</div>
+      <div id="controlPanel" class="noselect">
+        <div id="joyStickContainer">
+          <div
+            id="joyDiv"
+            style="width: 200px; height: 200px; margin-bottom: 20px"
+          ></div>
+        </div>
+        <div id="funcBtnContainer">
+          <span class="button" id="btnA" onclick="client.updateAction('a')"
+            >A</span
+          >
+          <span class="button" id="btnB" onclick="client.updateAction('b')"
+            >B</span
+          >
+        </div>
+      </div>
+    </div>
 
-      var enterGame = function () {
-        var name = document.getElementById("playerName");
-        console.log("name:" + name.value);
-        socket.emit("enter game", name.value);
-      };
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="module">
+      import {
+        enterGame,
+        updateAction,
+        updatePosition,
+        setCreateUserCallback,
+      } from "/client.js";
+      client.enterGame = enterGame;
+      client.updateAction = updateAction;
+      client.updatePosition = updatePosition;
+      client.setCreateUserCallback = setCreateUserCallback;
+    </script>
+    <script type="text/javascript">
+      const client = {};
+
+      // fullscreen button
+      var goFS = document.getElementById("goFS");
+      goFS.addEventListener(
+        "click",
+        function () {
+          const elem = document.documentElement;
+          if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+          }
+        },
+        false
+      );
+      // connect socket and update joystick
+      const socket = io("http://localhost:3000");
+      // Create JoyStick object into the DIV 'joyDiv'
+      var Joy = new JoyStick("joyDiv", { internalFillColor: "red" });
+      var joyStickParam = {};
+
+      setInterval(function () {
+        // update joystick data periodically
+        var joyStickData = {
+          inputPosX: Joy.GetPosX(),
+          inputPosY: Joy.GetPosY(),
+          direction: Joy.GetDir(),
+          x: Joy.GetX(),
+          y: Joy.GetY(),
+        };
+
+        // compare joystick data to detect movement
+        if (!isDataEqual(joyStickParam, joyStickData)) {
+          console.log("moved", joyStickParam);
+          if (client.updatePosition) client.updatePosition(joyStickParam);
+          joyStickParam = joyStickData;
+        }
+      }, 50);
+
+      function isDataEqual(oldObj, newObj) {
+        const keys1 = Object.keys(oldObj);
+        const keys2 = Object.keys(newObj);
+        if (keys1.length !== keys2.length) {
+          return false;
+        }
+        for (let key of keys1) {
+          if (oldObj[key] !== newObj[key]) {
+            return false;
+          }
+        }
+        return true;
+      }
+
+      function enterGame() {
+        client.enterGame(document.getElementById("playerName"));
+        const promise = new Promise((resolve, reject) => {
+          if (client.player_name) {
+            console.log("user created", client.player_name);
+            resolve();
+          } else {
+            console.log("user creating");
+            client.setCreateUserCallback(resolve);
+          }
+        }).then((playerName) => {
+          console.log("change screen");
+          if (playerName) {
+            document.getElementById("playScreen").style.visibility = "visible";
+            document.getElementById("mainScreen").style.visibility = "hidden";
+            document.getElementById("nameTitle").innerHTML = playerName;
+          }
+        });
+      }
     </script>
   </body>
 </html>
