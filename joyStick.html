@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>DaiKon Joy</title>
+    <meta charset="utf-8" />
+    <meta name="description" content="JoyStick for the game DaiKon Run" />
+    <meta name="author" content="DaiKon R." />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no"
+    />
+    <link rel="shortcut icon" type="image/png" href="" />
+    <style>
+      html body {
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        right: 0;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Safari */
+        -khtml-user-select: none; /* Konqueror HTML */
+        -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+        user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome, Edge, Opera and Firefox */
+      }
+
+      .button {
+        height: 100px;
+        width: 100px;
+        background-color: #bbb;
+        border-radius: 50%;
+        display: inline-block;
+        font-size: 60px;
+        line-height: 100px;
+        text-align: center;
+      }
+
+      #nameTitle {
+        text-align: center;
+        margin: 40px 5px 10px 5px;
+        font-size: 40px;
+      }
+
+      #controlPanel {
+        font-size: 0;
+        line-height: 0;
+        position: fixed;
+        right: 0;
+        left: 0;
+        bottom: 0;
+        display: table;
+        width: 100%;
+        touch-action: manipulation;
+      }
+
+      #controlPanel > * {
+        display: table-cell;
+        vertical-align: middle;
+      }
+
+      #joyStickContainer {
+        width: 50%;
+      }
+
+      #joyDiv {
+        width: 200px;
+        height: 200px;
+        margin: 50px 50px 60px 50px;
+      }
+
+      #funcBtnContainer {
+        position: relative;
+        width: 50%;
+      }
+
+      #btnA {
+        position: absolute;
+        bottom: 40px;
+        right: 150px;
+      }
+
+      #btnB {
+        position: absolute;
+        top: 50px;
+        right: 40px;
+      }
+
+      #goFS {
+        height: 50px;
+        position: fixed;
+        left: 5px;
+        top: 5px;
+      }
+    </style>
+    <script src="/joy.min.js"></script>
+  </head>
+  <body>
+    <button id="goFS">Fullscreen</button>
+    <div id="nameTitle">Minimalist Style</div>
+    <div id="controlPanel" class="noselect">
+      <div id="joyStickContainer">
+        <div
+          id="joyDiv"
+          style="width: 200px; height: 200px; margin-bottom: 20px"
+        ></div>
+      </div>
+      <div id="funcBtnContainer">
+        <span class="button" id="btnA" onclick="">A</span>
+        <span class="button" id="btnB">B</span>
+      </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript">
+      let urlParams = new URLSearchParams(window.location.search);
+      var playerName = urlParams.get("playerName");
+      document.getElementById("nameTitle").innerHTML = playerName;
+
+      var goFS = document.getElementById("goFS");
+      goFS.addEventListener(
+        "click",
+        function () {
+          const elem = document.documentElement;
+          if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+          }
+        },
+        false
+      );
+
+      const socket = io("http://localhost:3000");
+
+      // Create JoyStick object into the DIV 'joyDiv'
+      var Joy = new JoyStick("joyDiv", { internalFillColor: "red" });
+
+      var joyStickParam = {};
+
+      setInterval(function () {
+        var joyStickData = {
+          playerName: urlParams.get("playerName"),
+          joyInputPosX: Joy.GetPosX(),
+          joyInputPosY: Joy.GetPosY(),
+          joyDirezione: Joy.GetDir(),
+          joyX: Joy.GetX(),
+          joyY: Joy.GetY(),
+        };
+
+        // compare joystick data to detect movement
+        if (!isDataEqual(joyStickParam, joyStickData)) {
+          console.log("moved", joyStickParam);
+          socket.emit("joyStick input", joyStickParam);
+          joyStickParam = joyStickData;
+        }
+      }, 50);
+
+      function isDataEqual(oldObj, newObj) {
+        const keys1 = Object.keys(oldObj);
+        const keys2 = Object.keys(newObj);
+        if (keys1.length !== keys2.length) {
+          return false;
+        }
+        for (let key of keys1) {
+          if (oldObj[key] !== newObj[key]) {
+            return false;
+          }
+        }
+        return true;
+      }
+    </script>
+  </body>
+</html>

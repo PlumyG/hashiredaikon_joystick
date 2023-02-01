@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>DaiKon Joy</title>
+    <meta charset="utf-8" />
+    <meta name="description" content="JoyStick for the game DaiKon Run" />
+    <meta name="author" content="DaiKon R." />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no"
+    />
+    <link rel="shortcut icon" type="image/png" href="" />
+    <style>
+      .mainDiv {
+        text-align: center;
+        margin: 10%;
+        font-size: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mainDiv">
+      <form type="post" action="joyStick.html" onsubmit="return enterGame()">
+        <label for="playerName">Name: </label>
+        <input
+          type="text"
+          id="playerName"
+          name="playerName"
+          maxlength="20"
+          required
+        />
+        <button type="submit">Enter game</button>
+      </form>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      // client-side
+      const socket = io("http://localhost:8000", {
+        withCredentials: true,
+        extraHeaders: {
+          "my-custom-header": "abcd",
+        },
+      });
+
+      var enterGame = function () {
+        var name = document.getElementById("playerName");
+        console.log("name:" + name.value);
+        socket.emit("enter game", name.value);
+      };
+    </script>
+  </body>
+</html>
